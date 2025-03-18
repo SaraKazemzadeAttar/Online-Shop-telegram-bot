@@ -1,15 +1,22 @@
 from pymongo import MongoClient
-from pymongo import MongoClient
+from datetime import datetime
 
-try:
-    client = MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=5000)
-    client.server_info()  # This forces a connection check
-    print("Connected to MongoDB!")
-except Exception as e:
-    print("Error:", e)
+# Connect to MongoDB
+client = MongoClient("mongodb://localhost:27017/")
+db = client["telegram_bot"] 
+users_collection = db["users"]  
 
-db = client["telegram_shop"]
 
-users_collection = db["users"]
-carts_collection = db["carts"]
-orders_collection = db["orders"]
+def is_registered(user_id):
+    return users_collection.find_one({"user_id": user_id}) is not None
+
+def insert_user(user_id, first_name, phone=None, email=None, username=None):
+    user_data = {
+        "user_id": user_id,
+        "first_name": first_name,
+        "phone": phone,
+        "email": email,
+        "username": username,
+        "created_at": datetime.utcnow()
+    }
+    users_collection.insert_one(user_data)
