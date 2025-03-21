@@ -14,7 +14,7 @@ bot = telebot.TeleBot(API_TOKEN)
 sys.path.append(os.path.dirname(__file__))
 
 handlers_dir = os.path.join(os.path.dirname(__file__), 'handlers')
-Models_dir =  os.path.join(os.path.dirname(__file__), 'handlers')
+Models_dir =  os.path.join(os.path.dirname(__file__), 'Models')
 
 for file in os.listdir(handlers_dir):
     if file.endswith(".py") and file != "__init__.py":
@@ -35,5 +35,10 @@ for file in os.listdir(Models_dir):
         spec.loader.exec_module(module)
         if hasattr(module, 'register'):
             module.register(bot)
+            
+if not os.path.exists(handlers_dir):
+    raise FileNotFoundError(f"🚨 Handlers directory '{handlers_dir}' not found!")
+if not os.path.exists(Models_dir):
+    raise FileNotFoundError(f"🚨 Models directory '{Models_dir}' not found!")
 
 bot.infinity_polling()

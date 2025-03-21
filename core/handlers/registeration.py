@@ -4,6 +4,13 @@ from Models import db
 import re
 # CHANNEL_ID = os.environ.get("CHANNEL_ID")
 # CHANNEL_LINK = os.environ.get("CHANNEL_LINK")
+from pymongo import MongoClient
+from datetime import datetime
+
+# Connect to MongoDB
+client = MongoClient("mongodb://127.0.0.1:27017/")
+db = client["telegram_bot"] 
+users_collection = db["users"] 
 
 def register(bot):
 
@@ -25,25 +32,26 @@ def register(bot):
     @bot.message_handler(commands=['start'])
     def start(message):
         user_id = message.chat.id
-        user = db.users_collection.find_one({"_id": user_id})
+        user = users_collection.find_one({"_id": user_id})
+        print(1)
 
         if not user:
-            db.users_collection.insert_one({"_id": user_id, "cart": []})
+            users_collection.insert_one({"_id": user_id, "cart": []})
             bot.send_message(user_id, "👋 Welcome! use /register to create your account" )
         else:
             bot.send_message(user_id, "👋 Welcome back!")
 
         bot.send_message(user_id, "🛒 Use /cart to view your shopping cart.\n💳 Use /pay to proceed to payment.")
         
-    def is_registered(user_id):
-        return db.users_collection.find_one({"user_id": user_id}) is not None
+    # def is_registered(user_id):
+    #     return db.users_collection.find_one({"user_id": user_id}) is not None
 
     @bot.message_handler(commands=["register"])
     def setup_name(message):
         user_id = message.chat.id
-        if is_registered(user_id):
-            bot.send_message(user_id, "🚀 You are already registered!")
-            return
+        # if is_registered(user_id):
+        #     bot.send_message(user_id, "🚀 You are already registered!")
+        #     return
         
         bot.send_message(user_id, "Please enter your first name:")
         bot.register_next_step_handler(message, ask_contact)
@@ -57,7 +65,18 @@ def register(bot):
 
         bot.send_message(message.chat.id, "Please enter your phone number (09123456789) or email (example@gmail.com):")
         bot.register_next_step_handler(message, set_user, fname)
-
+        
+    def insert_user(user_id, first_name, phone=None, email=None, username=None):
+        user_data = {
+            "_id": user_id,
+            "first_name": first_name,
+            "phone": phone,
+            "email": email,
+            "username": username,
+            "created_at": datetime.utcnow()
+        }
+        users_collection.insert_one(user_data)
+        
     def set_user(message, fname):
         contact = message.text.strip()
         
@@ -74,6 +93,6 @@ def register(bot):
             bot.register_next_step_handler(message, set_user, fname)
             return
 
-        db.insert_user(user_id=message.chat.id, first_name=fname, phone=phone, email=email, username=message.chat.username)
+        insert_user(user_id=message.chat.id, first_name=fname, phone=phone, email=email, username=message.chat.username)
         
         bot.send_message(message.chat.id, f"✅ Dear {fname}, your registration is complete!\nThanks for using this bot. 🤝")

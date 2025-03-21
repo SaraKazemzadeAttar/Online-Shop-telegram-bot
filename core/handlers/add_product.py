@@ -1,6 +1,6 @@
 import telebot
 
-def register(args):
+def register(bot):
         
     @bot.message_handler(commands=['add'])
     def add_to_cart(message):
