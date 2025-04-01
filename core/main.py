@@ -14,7 +14,7 @@ bot = telebot.TeleBot(API_TOKEN)
 sys.path.append(os.path.dirname(__file__))
 
 handlers_dir = os.path.join(os.path.dirname(__file__), 'handlers')
-Models_dir =  os.path.join(os.path.dirname(__file__), 'Models')
+# Models_dir =  os.path.join(os.path.dirname(__file__), 'Models')
 
 for file in os.listdir(handlers_dir):
     if file.endswith(".py") and file != "__init__.py":
@@ -26,19 +26,19 @@ for file in os.listdir(handlers_dir):
         if hasattr(module, 'register'):
             module.register(bot)
             
-for file in os.listdir(Models_dir):
-    if file.endswith(".py") and file != "__init__.py":
-        module_name = f"Models.{file[:-3]}"
-        spec = importlib.util.spec_from_file_location(module_name, os.path.join(Models_dir, file))
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
-        if hasattr(module, 'register'):
-            module.register(bot)
+# for file in os.listdir(Models_dir):
+#     if file.endswith(".py") and file != "__init__.py":
+#         module_name = f"Models.{file[:-3]}"
+#         spec = importlib.util.spec_from_file_location(module_name, os.path.join(Models_dir, file))
+#         module = importlib.util.module_from_spec(spec)
+#         sys.modules[module_name] = module
+#         spec.loader.exec_module(module)
+#         if hasattr(module, 'register'):
+#             module.register(bot)
             
 if not os.path.exists(handlers_dir):
     raise FileNotFoundError(f"🚨 Handlers directory '{handlers_dir}' not found!")
-if not os.path.exists(Models_dir):
-    raise FileNotFoundError(f"🚨 Models directory '{Models_dir}' not found!")
+# if not os.path.exists(Models_dir):
+#     raise FileNotFoundError(f"🚨 Models directory '{Models_dir}' not found!")
 
 bot.infinity_polling()

@@ -2,10 +2,11 @@ import telebot
 import os
 from Models import db 
 import re
-# CHANNEL_ID = os.environ.get("CHANNEL_ID")
-# CHANNEL_LINK = os.environ.get("CHANNEL_LINK")
 from pymongo import MongoClient
 from datetime import datetime
+
+CHANNEL_ID = os.environ.get("CHANNEL_ID")
+CHANNEL_LINK = os.environ.get("CHANNEL_LINK")
 
 # Connect to MongoDB
 client = MongoClient("mongodb://127.0.0.1:27017/")
@@ -33,8 +34,6 @@ def register(bot):
     def start(message):
         user_id = message.chat.id
         user = users_collection.find_one({"_id": user_id})
-        print(1)
-
         if not user:
             users_collection.insert_one({"_id": user_id, "cart": []})
             bot.send_message(user_id, "👋 Welcome! use /register to create your account" )
@@ -44,7 +43,7 @@ def register(bot):
         bot.send_message(user_id, "🛒 Use /cart to view your shopping cart.\n💳 Use /pay to proceed to payment.")
         
     # def is_registered(user_id):
-    #     return db.users_collection.find_one({"user_id": user_id}) is not None
+    #     return users_collection.find_one({"user_id": user_id}) is not None
 
     @bot.message_handler(commands=["register"])
     def setup_name(message):
@@ -58,11 +57,6 @@ def register(bot):
 
     def ask_contact(message):
         fname = message.text.strip()
-        if not fname:
-            bot.send_message(message.chat.id, "❌ First name cannot be empty. Try again.")
-            bot.register_next_step_handler(message, ask_contact)
-            return
-
         bot.send_message(message.chat.id, "Please enter your phone number (09123456789) or email (example@gmail.com):")
         bot.register_next_step_handler(message, set_user, fname)
         
