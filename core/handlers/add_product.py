@@ -6,18 +6,17 @@ db = client["telegram_bot"]
 cart_collection = db["carts"]
 
 def register(bot):
-        
+    
     @bot.message_handler(commands=['add'])
     def add_to_cart(message):
         user_id = message.chat.id
         msg = message.text.split()
-        
-        if len(message) < 3:
-            bot.send_message(user_id, "Usage: /add <product_id> <quantity>")
 
-        if not product:
-            bot.reply_to(message, "❌ Please enter the product name. Example: `/add iPhone 14`", parse_mode="Markdown")
+        if len(msg) < 2:
+            bot.send_message(user_id, "Usage: /add <product_id>")
             return
+
+        product = msg[1]
 
         cart_collection.update_one(
             {"user_id": user_id},
@@ -26,7 +25,7 @@ def register(bot):
         )
 
         bot.reply_to(message, f"✅ Product *{product}* has been added to your cart.", parse_mode="Markdown")
-        
+
 # remove product from cart 
     @bot.message_handler(commands=['remove'])
     def remove_from_cart(message):
@@ -55,5 +54,5 @@ def register(bot):
             return
 
         cart_items = "\n".join([f"- {item}" for item in cart["products"]])
-        bot.reply_to(message, f" *Your Cart:*\n{cart_items} \n, Enter /confirm to buy them :)", parse_mode="Markdown")
+        bot.reply_to(message, f" *Your Cart:*\n{cart_items} \n Enter /confirm to buy them :)", parse_mode="Markdown")
         
