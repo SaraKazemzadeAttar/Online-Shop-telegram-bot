@@ -2,20 +2,18 @@ import telebot
 from pymongo import MongoClient
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# Connect to MongoDB
 client = MongoClient("mongodb://127.0.0.1:27017/")
 db = client["telegram_bot"] 
 cart_collection = db["carts"]
 order_collection = db["orders"]
 
-# Simulated product list
+
 TEST_PRODUCTS = [
     {"id": "1", "name": "bag", "price": 500000},
     {"id": "2", "name": "Samsung Galaxy A73", "price": 27000000},
     {"id": "3", "name": "notebook", "price": 200000},
 ]
 def register(bot):
-    # Show products with inline buttons
     @bot.message_handler(commands=['products'])
     def show_products(message):
         markup = InlineKeyboardMarkup()
@@ -28,20 +26,17 @@ def register(bot):
             markup.add(button)
 
         bot.send_message(message.chat.id, "🛍️ Choose a product to add to your cart:", reply_markup=markup)
-
-    # Handle inline button press
+        
     @bot.callback_query_handler(func=lambda call: call.data.startswith("add_"))
     def handle_add_to_cart(call):
         user_id = call.message.chat.id
         product_id = call.data.split("_")[1]
 
-        # Find product
         product = next((p for p in TEST_PRODUCTS if p["id"] == product_id), None)
         if not product:
             bot.answer_callback_query(call.id, "❌ Product not found.")
             return
 
-        # Add to cart
         cart_collection.update_one(
             {"user_id": user_id},
             {"$push": {"products": f"{product['name']} - ${product['price']}"}},
@@ -57,7 +52,7 @@ def register(bot):
 
         if len(msg) < 2:
             product_list = "\n".join([f"{p['id']}: {p['name']} - ${p['price']}" for p in TEST_PRODUCTS])
-            bot.send_message(user_id, "📦 Available Products:\n" + product_list + "\n\nUsage: /add <product_id>")
+            bot.send_message(user_id, "Available Products:\n" + product_list + "\n\nUsage: /add <product_id>")
             return
 
         product_id = msg[1]
@@ -105,7 +100,6 @@ def register(bot):
         cart_items = "\n".join([f"- {item}" for item in cart["products"]])
         bot.reply_to(message, f"*Your Cart:*\n{cart_items}\n\n✅ To confirm your order, type /confirm", parse_mode="Markdown")
 
-    # Confirm and go to payment
     @bot.message_handler(commands=['confirm'])
     def confirm_order(message):
         user_id = message.chat.id
@@ -118,16 +112,13 @@ def register(bot):
         cart_items = "\n".join([f"- {item}" for item in cart["products"]])
         bot.reply_to(message, f"✅ Your order has been confirmed:\n{cart_items}\n\n💳 Processing payment...")
 
-        # (Optional) Save order
         order_collection.insert_one({
             "user_id": user_id,
             "products": cart["products"],
             "status": "Pending Payment"
         })
 
-        # Clear cart
         cart_collection.delete_one({"user_id": user_id})
 
-        # Send fake Zarinpal payment link
         payment_url = "https://sandbox.zarinpal.com/pg/StartPay/00000000-0000-0000-0000-000000000000"
         bot.send_message(user_id, f"[🧾 Pay Now]({payment_url})", parse_mode="Markdown")

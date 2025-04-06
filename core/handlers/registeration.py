@@ -49,7 +49,7 @@ def register(bot):
     def setup_name(message):
         user_id = message.chat.id
         # if is_registered(user_id):
-        #     bot.send_message(user_id, "🚀 You are already registered!")
+        #     bot.send_message(user_id, "You are already registered!")
         #     return
         
         bot.send_message(user_id, "Please enter your first name:")
