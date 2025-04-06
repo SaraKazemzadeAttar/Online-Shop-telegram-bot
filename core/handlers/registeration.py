@@ -40,7 +40,7 @@ def register(bot):
         else:
             bot.send_message(user_id, "👋 Welcome back!")
 
-        bot.send_message(user_id, "🛒 Use /cart to view your shopping cart.\n💳 Use /pay to proceed to payment.")
+        bot.send_message(user_id, "Hello friend \n Use /review to view your shopping cart.")
         
     # def is_registered(user_id):
     #     return users_collection.find_one({"user_id": user_id}) is not None
@@ -62,14 +62,18 @@ def register(bot):
         
     def insert_user(user_id, first_name, phone=None, email=None, username=None):
         user_data = {
-            "_id": user_id,
             "first_name": first_name,
             "phone": phone,
             "email": email,
             "username": username,
             "created_at": datetime.utcnow()
         }
-        users_collection.insert_one(user_data)
+
+        users_collection.update_one(
+            {"_id": user_id},
+            {"$set": user_data},
+            upsert=True
+        )
         
     def set_user(message, fname):
         contact = message.text.strip()
